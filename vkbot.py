@@ -12,33 +12,47 @@ def main():
 
     longpoll = VkBotLongPoll(vk_session, group_id)
 
+    teams_pass = {
+        "team_pass1": None,
+        "team_pass2": None,
+        "team_pass3": None
+    }
+
     for event in longpoll.listen():
 
         # если пришло новое сообщение
         if event.type == VkBotEventType.MESSAGE_NEW:
 
-            # Генерируем 3 сикретных ключа
-            user_pass_mas = []
-            for user_pass in range(3):
-                pas = ""
-                for x in range(8):  # Количество символов (16)
-                    pas += random.choice(list(
-                        '1234567890abcdefghigklmnopqrstuvyxwzABCDEFGHIGKLMNOPQRSTUVYXWZ'))  # Символы, из которых будет составлен пароль
-                user_pass_mas.append(pas)
+            # считаем значения None в teams_pass
+            none_count = 0
+            for team_pass in teams_pass:
+                if teams_pass[team_pass] == None:
+                    none_count += 1
 
-            # строка для отправки администратору содержащая ключи
-            pass_string_msg = f"Первая команда: {user_pass_mas[0]} \n" \
-                f"Вторая команда: {user_pass_mas[1]} \n" \
-                f"Третья команда: {user_pass_mas[2]} \n"
+            # если все команды без ключей
+            if none_count == 3:
+                # Генерируем 3 сикретных ключа
+                user_pass_mas = []
+                for user_pass in range(3):
+                    pas = ""
+                    for x in range(8):  # Количество символов (16)
+                        pas += random.choice(list(
+                            '1234567890abcdefghigklmnopqrstuvyxwzABCDEFGHIGKLMNOPQRSTUVYXWZ'))  # Символы, из которых будет составлен пароль
+                    user_pass_mas.append(pas)
 
-            # отправляем сообщение с ключами администратору
-            vk.messages.send(
-                peer_id=admin_id,
-                random_id=get_random_id(),
-                message=pass_string_msg
-            )
+                # строка для отправки администратору содержащая ключи
+                pass_string_msg = f"Первая команда: {user_pass_mas[0]} \n" \
+                    f"Вторая команда: {user_pass_mas[1]} \n" \
+                    f"Третья команда: {user_pass_mas[2]} \n"
 
-            print(event.obj.text)
+                # отправляем сообщение с ключами администратору
+                vk.messages.send(
+                    peer_id=admin_id,
+                    random_id=get_random_id(),
+                    message=pass_string_msg
+                )
+
+                print(event.obj.text)
 
 
 if __name__ == '__main__':
