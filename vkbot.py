@@ -5,6 +5,7 @@ from vk_api.utils import get_random_id
 from botconfig import *
 import random
 import json
+from edit_json import *
 
 
 def main():
@@ -27,36 +28,87 @@ def main():
 
             # если сообщение от администратора
             if event.obj.from_id == admin_id:
+                if database_completed:
+                    # считаем значения None в teams_pass
+                    none_count = 0
+                    for team_pass in teams_pass:
+                        if team_pass["team_pass"] == None and team_pass["team_id"] == None:
+                            none_count += 1
 
-                # считаем значения None в teams_pass
-                none_count = 0
-                for team_pass in teams_pass:
-                    if team_pass["team_pass"] == None and team_pass["team_id"] == None:
-                        none_count += 1
+                    # если все команды без ключей и у нас меньше чем 3 ключа
+                    if none_count == 3 and len(user_pass_mas) < 3:
+                        # Генерируем 3 сикретных ключа
+                        for user_pass in range(3):
+                            pas = ""
+                            for x in range(8):  # Количество символов (16)
+                                pas += random.choice(list(
+                                    '1234567890abcdefghigklmnopqrstuvyxwzABCDEFGHIGKLMNOPQRSTUVYXWZ'))  # Символы, из которых будет составлен пароль
+                            user_pass_mas.append(pas)
 
-                # если все команды без ключей и у нас меньше чем 3 ключа
-                if none_count == 3 and len(user_pass_mas) < 3:
-                    # Генерируем 3 сикретных ключа
-                    for user_pass in range(3):
-                        pas = ""
-                        for x in range(8):  # Количество символов (16)
-                            pas += random.choice(list(
-                                '1234567890abcdefghigklmnopqrstuvyxwzABCDEFGHIGKLMNOPQRSTUVYXWZ'))  # Символы, из которых будет составлен пароль
-                        user_pass_mas.append(pas)
+                        # строка для отправки администратору содержащая ключи
+                        pass_string_msg = f"Первая команда: {user_pass_mas[0]} \n" \
+                            f"Вторая команда: {user_pass_mas[1]} \n" \
+                            f"Третья команда: {user_pass_mas[2]} \n"
 
-                    # строка для отправки администратору содержащая ключи
-                    pass_string_msg = f"Первая команда: {user_pass_mas[0]} \n" \
-                        f"Вторая команда: {user_pass_mas[1]} \n" \
-                        f"Третья команда: {user_pass_mas[2]} \n"
+                        # отправляем сообщение с ключами администратору
+                        vk.messages.send(
+                            peer_id=admin_id,
+                            random_id=get_random_id(),
+                            message=pass_string_msg
+                        )
 
-                    # отправляем сообщение с ключами администратору
+                        print(event.obj.text)
+                # если в начале строки '!add'
+                elif event.obj.text.split()[0].strip() == '!add':
+
+                    # пытаемся составить JSON список для базы данных из сообщения и записать в файл
+                    try:
+
+                        msg = event.obj.text
+                        msg = msg.replace('!add ', '')
+                        task = msg.split(":")[0]
+                        true_option = int(msg.split(":")[1].split(">")[-1])
+                        options = msg.replace(f">{str(true_option)}", '').replace(f"{task}:", '')
+                        options_mas = []
+
+                        for option in options.split("|"):
+                            options_mas.append(option)
+
+                        data = {
+                            "task": task,
+                            "options": options_mas,
+                            "true_option": true_option
+                        }
+
+                        # читаем JSON файл
+                        json_file_data = json_read(database_file_name)
+
+                        # добавляем в результат data
+                        json_file_data.append(data)
+
+                        # записываем обратно в файл
+                        func_return = write_json(database_file_name, json_file_data)
+
+                        vk.messages.send(
+                            peer_id=admin_id,
+                            random_id=get_random_id(),
+                            message=f"Функция записи в JSON файл вернула: {func_return}"
+                        )
+
+                    # если что то пошло не так отправляем сообщение об ошибке синтаксиса
+                    except:
+                        vk.messages.send(
+                            peer_id=admin_id,
+                            random_id=get_random_id(),
+                            message=database_syntax_error
+                        )
+
+                else:
                     vk.messages.send(
                         peer_id=admin_id,
                         random_id=get_random_id(),
-                        message=pass_string_msg
+                        message=database_msg_text
                     )
-
-                    print(event.obj.text)
 
             # если текст сообщения есть в масиве с ключами и id пользователя не id администратора
             if event.obj.text in user_pass_mas and event.obj.from_id != admin_id:
