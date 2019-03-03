@@ -66,7 +66,7 @@ def main():
                         print(event.obj.text)
 
                 # если в начале строки сообщения '!add'
-                elif event.obj.text.split()[0].strip() == '!add':
+                elif event.obj.text.split()[0].strip() == '!add' and not database_completed:
 
                     # пытаемся составить JSON список для базы данных из сообщения и записать в файл
                     try:
@@ -108,11 +108,11 @@ def main():
                         vk.messages.send(
                             peer_id=admin_id,
                             random_id=get_random_id(),
-                            message=database_syntax_error
+                            message=syntax_error
                         )
 
                 # если в начале строки сообщения '!readdb'
-                elif event.obj.text.split()[0].strip() == '!readdb':
+                elif event.obj.text.split()[0].strip() == '!readdb' and not database_completed:
 
                     # читаем JSON файл с вопросами не пустой
                     json_file_data = json_read(database_file_name)
@@ -153,6 +153,54 @@ def main():
                             peer_id=admin_id,
                             random_id=get_random_id(),
                             message=database_msg_text
+                        )
+
+                # если в начале строки сообщения '!deltask'
+                elif event.obj.text.split()[0].strip() == '!deltask':
+
+                    # разделяем строку сообщения
+                    del_pram = event.obj.text.split()
+
+                    # пытаемся первое значение масива del_pram преобразовать в int
+                    try:
+                        data_index = int(del_pram[1])
+                    # если у нас это не получается присваимаем False
+                    except:
+                        data_index = "ERROR"
+
+                    print(data_index)
+
+                    # если data_index не False
+                    if data_index != "ERROR":
+
+                        # читаем JSON файл с вопросами
+                        json_file_data = json_read(database_file_name)
+                        # удаляем елемент по его индеку
+                        try:
+                            del json_file_data[data_index]
+                            del_json = "OK"
+                        except:
+                            del_json = "ERROR"
+
+                        if del_json != "ERROR":
+                            # результат записываем в JSON файл
+                            func_return = write_json(database_file_name, json_file_data)
+                        else:
+                            func_return = "NONE"
+
+                        vk.messages.send(
+                            peer_id=admin_id,
+                            random_id=get_random_id(),
+                            message=f"Совершена попытка удалить элемент с индексом: {str(data_index)} \n"
+                            f"Функция записи в JSON файл вернула: {func_return} \n"
+                            f"Удаление записи в JSON файле вернуло: {del_json}"
+                        )
+
+                    else:
+                        vk.messages.send(
+                            peer_id=admin_id,
+                            random_id=get_random_id(),
+                            message=syntax_error
                         )
 
                 # отправляем сообщение о том как можно заполнить базу данных
