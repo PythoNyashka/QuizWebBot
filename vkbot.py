@@ -156,7 +156,7 @@ def main():
                         )
 
                 # если в начале строки сообщения '!deltask'
-                elif event.obj.text.split()[0].strip() == '!deltask':
+                elif event.obj.text.split()[0].strip() == '!deltask' and not database_completed:
 
                     # разделяем строку сообщения
                     del_pram = event.obj.text.split()
