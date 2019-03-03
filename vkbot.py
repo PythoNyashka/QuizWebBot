@@ -269,7 +269,7 @@ def main():
 
             # если зарегестрировно 3 команды
             if len(registred_id) == 3:
-                pass
+                print("Зарегестрировано 3 команды")
 
             print(teams_pass)
 
