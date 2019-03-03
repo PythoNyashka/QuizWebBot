@@ -245,11 +245,14 @@ def main():
                                 # добавляем команду (id пользователя) в зарегестрированынх
                                 registred_id.append(event.obj.from_id)
 
+                                # индекс команды в teams_pass
+                                team_count = teams_pass.index({'team_pass': event.obj.text, 'team_id': event.obj.from_id})
+
                                 # отправляем сообщение об успешной регистрации
                                 vk.messages.send(
                                     peer_id=event.obj.from_id,
                                     random_id=get_random_id(),
-                                    message=f"Ключ принят ! Вы зарегестрированы как команда #{teams_pass.index(team)}"
+                                    message=f"Ключ принят ! Вы зарегестрированы как команда #{int(team_count)+1}"
                                 )
                                 break
                         else:
