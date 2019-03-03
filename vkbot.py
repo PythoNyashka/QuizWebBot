@@ -27,6 +27,12 @@ def main():
     # масив с зарегестрированами пользователями (командами)
     registred_id = []
 
+    # переменная хранящия True если игра начата и False если нет
+    # по умолчанию False
+    game_started = False
+
+    database_completed = False
+
     for event in longpoll.listen():
 
         # если пришло новое сообщение
@@ -110,6 +116,14 @@ def main():
                             random_id=get_random_id(),
                             message=syntax_error
                         )
+
+                elif event.obj.text.split()[0].strip() == '!startgame':
+                    database_completed = True
+                    vk.messages.send(
+                        peer_id=admin_id,
+                        random_id=get_random_id(),
+                        message=start_game_msg
+                    )
 
                 # если в начале строки сообщения '!readdb'
                 elif event.obj.text.split()[0].strip() == '!readdb' and not database_completed:
@@ -252,6 +266,10 @@ def main():
                             message="Выша команда уже зарегестрирована !"
                         )
                         break
+
+            # если зарегестрировно 3 команды
+            if len(registred_id) == 3:
+                pass
 
             print(teams_pass)
 
