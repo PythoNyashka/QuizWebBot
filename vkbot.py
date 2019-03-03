@@ -14,11 +14,17 @@ def main():
 
     longpoll = VkBotLongPoll(vk_session, group_id)
 
+    # масив с JSON списками хранящими ключ пользователя и его id(команды)
     teams_pass = [{"team_pass": None, "team_id": None}, {"team_pass": None, "team_id": None},
                   {"team_pass": None, "team_id": None}]
 
+    # масив с ключами пользователей(команд)
     user_pass_mas = []
+
+    # масив с использоваными ключами
     expired_keys = []
+
+    # масив с зарегестрированами пользователями (командами)
     registred_id = []
 
     for event in longpoll.listen():
@@ -58,7 +64,8 @@ def main():
                         )
 
                         print(event.obj.text)
-                # если в начале строки '!add'
+
+                # если в начале строки сообщения '!add'
                 elif event.obj.text.split()[0].strip() == '!add':
 
                     # пытаемся составить JSON список для базы данных из сообщения и записать в файл
@@ -77,7 +84,8 @@ def main():
                         data = {
                             "task": task,
                             "options": options_mas,
-                            "true_option": true_option
+                            "true_option": true_option,
+                            "resolved": "false"
                         }
 
                         # читаем JSON файл
@@ -103,6 +111,51 @@ def main():
                             message=database_syntax_error
                         )
 
+                # если в начале строки сообщения '!readdb'
+                elif event.obj.text.split()[0].strip() == '!readdb':
+
+                    # читаем JSON файл с вопросами не пустой
+                    json_file_data = json_read(database_file_name)
+
+                    # если JSON файл с вопросами не пустой
+                    if json_file_data:
+
+                        # массив с отформатированым текстом JSON файла для отправки в сообщении
+                        all_data_text = []
+
+                        for task in json_file_data:
+                            data_text = f"Count: {json_file_data.index(task)} \n" \
+                                f"task: {task['task']} \n" \
+                                f"options: {task['options']} \n" \
+                                f"true_option: {task['true_option']} \n" \
+                                f"-------------------"
+
+                            all_data_text.append(data_text)
+
+                        # отправляем сообщение о том что база данных пуста
+                        vk.messages.send(
+                            peer_id=admin_id,
+                            random_id=get_random_id(),
+                            message="\n".join(all_data_text)
+                        )
+
+                    else:
+
+                        # отправляем сообщение о том что база данных пуста
+                        vk.messages.send(
+                            peer_id=admin_id,
+                            random_id=get_random_id(),
+                            message=database_is_empty
+                        )
+
+                        # отправляем сообщение о том как можно добавить вопрос в базу данных
+                        vk.messages.send(
+                            peer_id=admin_id,
+                            random_id=get_random_id(),
+                            message=database_msg_text
+                        )
+
+                # отправляем сообщение о том как можно заполнить базу данных
                 else:
                     vk.messages.send(
                         peer_id=admin_id,
@@ -111,7 +164,8 @@ def main():
                     )
 
             # если текст сообщения есть в масиве с ключами и id пользователя не id администратора
-            if event.obj.text in user_pass_mas and event.obj.from_id != admin_id:
+            # и database_completed = True
+            if event.obj.text in user_pass_mas and event.obj.from_id != admin_id and database_completed:
 
                 for team in teams_pass:
                     # если команды нет в массиве зарегестрированных команд
