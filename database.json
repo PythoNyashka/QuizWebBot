@@ -9,7 +9,7 @@
       "Оранжевого"
     ],
     "true_option": 2,
-    "resolved": "false"
+    "resolved": "true"
   },
   {
     "task": "Влад любит уточек ?",
@@ -21,6 +21,6 @@
       "Чего блять"
     ],
     "true_option": 1,
-    "resolved": "false"
+    "resolved": "true"
   }
 ]

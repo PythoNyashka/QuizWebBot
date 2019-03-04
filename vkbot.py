@@ -9,6 +9,37 @@ from edit_json import *
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 
+def plus_count(from_id, teams_pass):
+    '''
+    Добавление 1 балла к команде
+    '''
+
+    load_data = json_read(load_data_file)
+
+    for team in teams_pass:
+        if team['team_id'] == from_id:
+            load_data[f"team{teams_pass.index(team) + 1}"] += 1
+
+    write_json(load_data_file, load_data)
+
+
+def minus_count(from_id, teams_pass):
+    '''
+    Удаление 1 балла у команды
+    '''
+
+    load_data = json_read(load_data_file)
+
+    for team in teams_pass:
+        if team['team_id'] == from_id:
+            if load_data[f"team{teams_pass.index(team) + 1}"] > 0:
+                load_data[f"team{teams_pass.index(team) + 1}"] -= 1
+                write_json(load_data_file, load_data)
+
+
+write_json(keyboard_position_file, {})
+
+
 def main():
     vk_session = vk_api.VkApi(token=token)
     vk = vk_session.get_api()
@@ -330,7 +361,43 @@ def main():
                     user_keyboard_position = json_keyboard_file_data[str(event.obj.from_id)]
                     if json_file_data[user_keyboard_position]["options"].index(event.obj.text) == \
                             json_file_data[user_keyboard_position]["true_option"]:
-                        print("Верный ответ")
+
+                        # отмечаем вопрос как решёный
+                        json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["resolved"] = "true"
+                        write_json(database_file_name, json_file_data)
+
+                        # переходим на следующию позицию клавиатуры
+                        json_keyboard_file_data[str(event.obj.from_id)] += 1
+                        write_json(keyboard_position_file, json_keyboard_file_data)
+
+                        # определяем последний вариант ответа
+                        down_option = json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["options"][-1]
+
+                        # генерируем клавиатуру
+                        keyboard = VkKeyboard(one_time=True)
+                        for option in json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["options"]:
+                            keyboard.add_button(option, color=VkKeyboardColor.DEFAULT)
+                            if not option == down_option:
+                                keyboard.add_line()  # Переход на вторую строку
+
+                        # добавляем 1 балл команде
+                        plus_count(event.obj.from_id, teams_pass)
+
+                        # отправляем сообщение о том что ответ верный
+                        vk.messages.send(
+                            peer_id=event.obj.from_id,
+                            random_id=get_random_id(),
+                            message="Ответ верный: +1"
+                        )
+
+                        # отправляем следующий вопрос с клавиатурой
+                        vk.messages.send(
+                            peer_id=event.obj.from_id,
+                            random_id=get_random_id(),
+                            keyboard=keyboard.get_keyboard(),
+                            message=json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["task"]
+                        )
+
                     else:
                         print("Неверный ответ")
                     pass

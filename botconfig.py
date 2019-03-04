@@ -15,6 +15,8 @@ database_file_name = "database.json"
 
 keyboard_position_file = "keyboard_position.json"
 
+load_data_file = "load.json"
+
 database_msg_text = "database_completed = False \n" \
                     "- - - - - - - - - - - \n" \
                     "Для добавления записи в базу данных отправьте: \n" \
