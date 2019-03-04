@@ -22,5 +22,29 @@
     ],
     "true_option": 1,
     "resolved": "true"
+  },
+  {
+    "task": "Кто такой матвей ?",
+    "options": [
+      "Гоша",
+      "Матвей",
+      "Чё",
+      "Вася",
+      "Серёга"
+    ],
+    "true_option": 1,
+    "resolved": "false"
+  },
+  {
+    "task": "crutch",
+    "options": [
+      "crutch0",
+      "crutch1",
+      "crutch2",
+      "crutch3",
+      "crutch4"
+    ],
+    "true_option": 0,
+    "resolved": "false"
   }
 ]

@@ -157,6 +157,23 @@ def main():
                         message=start_game_msg
                     )
 
+                    data = {
+                        "task": "crutch",
+                        "options": ["crutch0","crutch1","crutch2","crutch3","crutch4"],
+                        "true_option": 0,
+                        "resolved": "false"
+                    }
+
+                    # читаем JSON файл
+                    json_file_data = json_read(database_file_name)
+
+                    # добавляем в результат data
+                    json_file_data.append(data)
+
+                    # записываем обратно в файл
+                    func_return = write_json(database_file_name, json_file_data)
+
+
                 # если в начале строки сообщения '!readdb'
                 elif event.obj.text.split()[0].strip() == '!readdb' and not database_completed:
 
@@ -359,48 +376,75 @@ def main():
                     print(json_keyboard_file_data)
                     print()
                     user_keyboard_position = json_keyboard_file_data[str(event.obj.from_id)]
-                    if json_file_data[user_keyboard_position]["options"].index(event.obj.text) == \
-                            json_file_data[user_keyboard_position]["true_option"]:
 
-                        # отмечаем вопрос как решёный
-                        json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["resolved"] = "true"
-                        write_json(database_file_name, json_file_data)
+                    try:
+                        options_index = json_file_data[user_keyboard_position]["options"].index(event.obj.text)
+                    except:
+                        options_index = "ERROR"
 
-                        # переходим на следующию позицию клавиатуры
-                        json_keyboard_file_data[str(event.obj.from_id)] += 1
-                        write_json(keyboard_position_file, json_keyboard_file_data)
+                    if options_index != "ERROR":
+                        if options_index == json_file_data[user_keyboard_position]["true_option"]:
 
-                        # определяем последний вариант ответа
-                        down_option = json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["options"][-1]
+                            # отмечаем вопрос как решёный
+                            json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["resolved"] = "true"
+                            write_json(database_file_name, json_file_data)
 
-                        # генерируем клавиатуру
-                        keyboard = VkKeyboard(one_time=True)
-                        for option in json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["options"]:
-                            keyboard.add_button(option, color=VkKeyboardColor.DEFAULT)
-                            if not option == down_option:
-                                keyboard.add_line()  # Переход на вторую строку
+                            # переходим на следующию позицию клавиатуры
+                            json_keyboard_file_data[str(event.obj.from_id)] += 1
+                            write_json(keyboard_position_file, json_keyboard_file_data)
 
-                        # добавляем 1 балл команде
-                        plus_count(event.obj.from_id, teams_pass)
+                            # определяем последний вариант ответа
+                            down_option = json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["options"][-1]
 
-                        # отправляем сообщение о том что ответ верный
-                        vk.messages.send(
-                            peer_id=event.obj.from_id,
-                            random_id=get_random_id(),
-                            message="Ответ верный: +1"
-                        )
+                            # добавляем 1 балл команде
+                            plus_count(event.obj.from_id, teams_pass)
 
-                        # отправляем следующий вопрос с клавиатурой
-                        vk.messages.send(
-                            peer_id=event.obj.from_id,
-                            random_id=get_random_id(),
-                            keyboard=keyboard.get_keyboard(),
-                            message=json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["task"]
-                        )
+                            # отправляем сообщение о том что ответ верный
+                            vk.messages.send(
+                                peer_id=event.obj.from_id,
+                                random_id=get_random_id(),
+                                message="Ответ верный: +1"
+                            )
+
+                            down_task = json_file_data[-1]["task"]
+
+                            if down_task != json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["task"]:
+
+                                # генерируем клавиатуру
+                                keyboard = VkKeyboard(one_time=True)
+                                for option in json_file_data[json_keyboard_file_data[str(event.obj.from_id)]][
+                                    "options"]:
+                                    keyboard.add_button(option, color=VkKeyboardColor.DEFAULT)
+                                    if not option == down_option:
+                                        keyboard.add_line()  # Переход на вторую строку
+
+                                # отправляем следующий вопрос с клавиатурой
+                                vk.messages.send(
+                                    peer_id=event.obj.from_id,
+                                    random_id=get_random_id(),
+                                    keyboard=keyboard.get_keyboard(),
+                                    message=json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["task"]
+                                )
+
+                            else:
+
+                                vk.messages.send(
+                                    peer_id=event.obj.from_id,
+                                    random_id=get_random_id(),
+                                    message="Вы закончили выполнение заданий !"
+                                )
+
+                        else:
+                            print("Неверный ответ")
+                        pass
 
                     else:
-                        print("Неверный ответ")
-                    pass
+                        vk.messages.send(
+                            peer_id=event.obj.from_id,
+                            random_id=get_random_id(),
+                            message="Вы можете использовать только ответы на "
+                                    "вопросы либо вы уже закончили викторину"
+                        )
 
             print(teams_pass)
 
