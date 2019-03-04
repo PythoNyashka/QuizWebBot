@@ -10,5 +10,17 @@
     ],
     "true_option": 2,
     "resolved": "false"
+  },
+  {
+    "task": "Влад любит уточек ?",
+    "options": [
+      "Да",
+      "Нет",
+      "Может",
+      "Хз",
+      "Чего блять"
+    ],
+    "true_option": 1,
+    "resolved": "false"
   }
 ]

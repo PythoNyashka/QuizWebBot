@@ -6,6 +6,7 @@ from botconfig import *
 import random
 import json
 from edit_json import *
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 
 def main():
@@ -246,13 +247,14 @@ def main():
                                 registred_id.append(event.obj.from_id)
 
                                 # индекс команды в teams_pass
-                                team_count = teams_pass.index({'team_pass': event.obj.text, 'team_id': event.obj.from_id})
+                                team_count = teams_pass.index(
+                                    {'team_pass': event.obj.text, 'team_id': event.obj.from_id})
 
                                 # отправляем сообщение об успешной регистрации
                                 vk.messages.send(
                                     peer_id=event.obj.from_id,
                                     random_id=get_random_id(),
-                                    message=f"Ключ принят ! Вы зарегестрированы как команда #{int(team_count)+1}"
+                                    message=f"Ключ принят ! Вы зарегестрированы как команда #{int(team_count) + 1}"
                                 )
                                 break
                         else:
@@ -272,7 +274,66 @@ def main():
 
             # если зарегестрировно 3 команды
             if len(registred_id) == 3:
-                print("Зарегестрировано 3 команды")
+
+                # читаем JSON файл с поизициями клавиатуры
+                json_file_data = json_read(keyboard_position_file)
+
+                # если получаем пустой масив
+                if not json_file_data:
+
+                    first_task = json_read(database_file_name)[0]
+
+                    keyboard = VkKeyboard(one_time=True)
+
+                    down_option = first_task["options"][-1]
+                    for option in first_task["options"]:
+                        keyboard.add_button(option, color=VkKeyboardColor.DEFAULT)
+                        if not option == down_option:
+                            keyboard.add_line()  # Переход на вторую строку
+
+                    for team_id in registred_id:
+                        vk.messages.send(
+                            peer_id=team_id,
+                            random_id=get_random_id(),
+                            keyboard=keyboard.get_keyboard(),
+                            message=start_user_game_msg
+
+                        )
+
+                        vk.messages.send(
+                            peer_id=team_id,
+                            random_id=get_random_id(),
+                            message=first_task["task"]
+
+                        )
+
+                    my_str = '{'
+                    punct = ''
+                    for id in registred_id:
+                        if id != registred_id[-1]:
+                            punct = ','
+                        else:
+                            punct = ''
+                        my_str += f'"{id}":0{punct}'
+                    my_str += "}"
+
+                    data = json.loads(str(my_str))
+                    print(data)
+                    func_return = write_json(keyboard_position_file, data)
+                    print(func_return)
+
+                else:
+                    json_keyboard_file_data = json_read(keyboard_position_file)
+                    json_file_data = json_read(database_file_name)
+                    print(json_keyboard_file_data)
+                    print()
+                    user_keyboard_position = json_keyboard_file_data[str(event.obj.from_id)]
+                    if json_file_data[user_keyboard_position]["options"].index(event.obj.text) == \
+                            json_file_data[user_keyboard_position]["true_option"]:
+                        print("Верный ответ")
+                    else:
+                        print("Неверный ответ")
+                    pass
 
             print(teams_pass)
 
