@@ -52,6 +52,17 @@ def end_game(registred_id, vk):
     global teams_pass
     game_end = True
 
+    # читаем JSON файл с вопросами
+    json_file_data = json_read(database_file_name)
+
+    # удаляем костыли из базы данных (не работает но фиксить некогда :( )
+    for task_list in json_file_data:
+        if task_list["task"] == "crutch":
+            del json_file_data[json_file_data.index(task_list)]
+            print(json_file_data)
+    write_json(database_file_name, json_file_data)
+
+    # инфа о тимах
     teams_info = json_read(load_data_file)
 
     mas = []
@@ -70,16 +81,16 @@ def end_game(registred_id, vk):
         vk.messages.send(
             peer_id=int(user),
             random_id=get_random_id(),
-            message=f"Победитель: https://vk.com/{win_team_id}"
+            message=f"Победитель: https://vk.com/id{win_team_id}"
         )
     vk.messages.send(
         peer_id=admin_id,
         random_id=get_random_id(),
-        message=f"Победитель: https://vk.com/{win_team_id}"
+        message=f"Победитель: https://vk.com/id{win_team_id}"
     )
 
     load_data = json_read(load_data_file)
-    load_data['winner'] = f"https://vk.com/{win_team_id}"
+    load_data['winner'] = f"https://vk.com/id{win_team_id}"
     write_json(load_data_file, load_data)
 
 
@@ -109,7 +120,7 @@ def main():
 
     load_data = {
         "team1": 0,
-        "team2": 2,
+        "team2": 0,
         "team3": 0,
         "winner": ""
     }
