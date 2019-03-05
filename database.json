@@ -1,38 +1,72 @@
 [
   {
-    "task": "Какого цвета Влад ?",
+    "task": "Страшная сила, которая спасёт мир, это… ",
     "options": [
-      "Жёлтого",
-      "Синего",
-      "Голубого",
-      "Фиолетового",
-      "Оранжевого"
+      "Любовь",
+      "Удача",
+      "Красота",
+      "Уточка",
+      "Смелость"
     ],
-    "true_option": 2,
-    "resolved": "true"
+    "true_option": 3
   },
   {
-    "task": "Влад любит уточек ?",
+    "task": "Каким предметом декоративной косметики иногда воздействуют на мозги?",
     "options": [
-      "Да",
-      "Нет",
-      "Может",
-      "Хз",
-      "Чего блять"
+      "Помада",
+      "Тушь",
+      "Крем",
+      "Пудра",
+      "Маска"
     ],
-    "true_option": 1,
-    "resolved": "true"
+    "true_option": 4
   },
   {
-    "task": "Кто такой матвей ?",
+    "task": "crutch",
     "options": [
-      "Гоша",
-      "Матвей",
-      "Чё",
-      "Вася",
-      "Серёга"
+      "crutch0",
+      "crutch1",
+      "crutch2",
+      "crutch3",
+      "crutch4"
     ],
-    "true_option": 1,
+    "true_option": 0,
+    "resolved": "false"
+  },
+  {
+    "task": "crutch",
+    "options": [
+      "crutch0",
+      "crutch1",
+      "crutch2",
+      "crutch3",
+      "crutch4"
+    ],
+    "true_option": 0,
+    "resolved": "false"
+  },
+  {
+    "task": "crutch",
+    "options": [
+      "crutch0",
+      "crutch1",
+      "crutch2",
+      "crutch3",
+      "crutch4"
+    ],
+    "true_option": 0,
+    "resolved": "false"
+  },
+  {
+    "task": "crutch",
+    "options": [
+      "crutch0",
+      "crutch1",
+      "crutch2",
+      "crutch3",
+      "crutch4"
+    ],
+    "true_option": 0,
     "resolved": "false"
   },
   {

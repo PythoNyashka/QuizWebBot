@@ -47,8 +47,9 @@ def main():
     longpoll = VkBotLongPoll(vk_session, group_id)
 
     # масив с JSON списками хранящими ключ пользователя и его id(команды)
-    teams_pass = [{"team_pass": None, "team_id": None}, {"team_pass": None, "team_id": None},
-                  {"team_pass": None, "team_id": None}]
+    teams_pass = [{"team_pass": None, "team_id": None, "done": False},
+                  {"team_pass": None, "team_id": None, "done": False},
+                  {"team_pass": None, "team_id": None, "done": False}]
 
     # масив с ключами пользователей(команд)
     user_pass_mas = []
@@ -123,7 +124,6 @@ def main():
                             "task": task,
                             "options": options_mas,
                             "true_option": true_option,
-                            "resolved": "false"
                         }
 
                         # читаем JSON файл
@@ -157,9 +157,10 @@ def main():
                         message=start_game_msg
                     )
 
+                    # создаём костыль
                     data = {
                         "task": "crutch",
-                        "options": ["crutch0","crutch1","crutch2","crutch3","crutch4"],
+                        "options": ["crutch0", "crutch1", "crutch2", "crutch3", "crutch4"],
                         "true_option": 0,
                         "resolved": "false"
                     }
@@ -167,10 +168,10 @@ def main():
                     # читаем JSON файл
                     json_file_data = json_read(database_file_name)
 
-                    # добавляем в результат data
+                    # добавляем в результат data костыль
                     json_file_data.append(data)
 
-                    # записываем обратно в файл
+                    # записываем обратно в файл наш костыль
                     func_return = write_json(database_file_name, json_file_data)
 
 
@@ -321,7 +322,7 @@ def main():
                         break
 
             # если зарегестрировно 3 команды
-            if len(registred_id) == 3:
+            if len(registred_id) == 3 and event.obj.from_id != admin_id:
 
                 # читаем JSON файл с поизициями клавиатуры
                 json_file_data = json_read(keyboard_position_file)
@@ -385,9 +386,9 @@ def main():
                     if options_index != "ERROR":
                         if options_index == json_file_data[user_keyboard_position]["true_option"]:
 
-                            # отмечаем вопрос как решёный
-                            json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["resolved"] = "true"
-                            write_json(database_file_name, json_file_data)
+                            # отмечаем вопрос как решёный (могло быть фичей но дедлайн 6ого марта :( )
+                            # json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["resolved"] = "true"
+                            # write_json(database_file_name, json_file_data)
 
                             # переходим на следующию позицию клавиатуры
                             json_keyboard_file_data[str(event.obj.from_id)] += 1
@@ -406,8 +407,10 @@ def main():
                                 message="Ответ верный: +1"
                             )
 
+                            # получаем последние задание в базе (то есть костыль)
                             down_task = json_file_data[-1]["task"]
 
+                            # если это не последние задание (костыль в базе)
                             if down_task != json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["task"]:
 
                                 # генерируем клавиатуру
@@ -427,6 +430,10 @@ def main():
                                 )
 
                             else:
+                                # записываем в teams_pass информацию о том что команда решила все задания
+                                for team in teams_pass:
+                                    if team['team_id'] == event.obj.from_id:
+                                        team["done"] = True
 
                                 vk.messages.send(
                                     peer_id=event.obj.from_id,
@@ -434,9 +441,61 @@ def main():
                                     message="Вы закончили выполнение заданий !"
                                 )
 
+                        # иначе то есть если ответ не верный
                         else:
-                            print("Неверный ответ")
-                        pass
+
+                            # переходим на следующию позицию клавиатуры
+                            json_keyboard_file_data[str(event.obj.from_id)] += 1
+                            write_json(keyboard_position_file, json_keyboard_file_data)
+
+                            # определяем последний вариант ответа
+                            down_option = json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["options"][-1]
+
+                            # добавляем 1 балл команде
+                            minus_count(event.obj.from_id, teams_pass)
+
+                            # отправляем сообщение о том что ответ верный
+                            vk.messages.send(
+                                peer_id=event.obj.from_id,
+                                random_id=get_random_id(),
+                                message="Ответ неверный: -1"
+                            )
+
+                            # получаем последние задание в базе (то есть костыль)
+                            down_task = json_file_data[-1]["task"]
+
+                            # если это не последние задание (костыль в базе)
+                            if down_task != json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["task"]:
+
+                                # генерируем клавиатуру
+                                keyboard = VkKeyboard(one_time=True)
+                                for option in json_file_data[json_keyboard_file_data[str(event.obj.from_id)]][
+                                    "options"]:
+                                    keyboard.add_button(option, color=VkKeyboardColor.DEFAULT)
+                                    if not option == down_option:
+                                        keyboard.add_line()  # Переход на вторую строку
+
+                                # отправляем следующий вопрос с клавиатурой
+                                vk.messages.send(
+                                    peer_id=event.obj.from_id,
+                                    random_id=get_random_id(),
+                                    keyboard=keyboard.get_keyboard(),
+                                    message=json_file_data[json_keyboard_file_data[str(event.obj.from_id)]]["task"]
+                                )
+
+                            else:
+                                # записываем в teams_pass информацию о том что команда решила все задания
+                                for team in teams_pass:
+                                    if team['team_id'] == event.obj.from_id:
+                                        team["done"] = True
+
+                                vk.messages.send(
+                                    peer_id=event.obj.from_id,
+                                    random_id=get_random_id(),
+                                    message="Вы закончили выполнение заданий !"
+                                )
+
+
 
                     else:
                         vk.messages.send(
@@ -446,7 +505,12 @@ def main():
                                     "вопросы либо вы уже закончили викторину"
                         )
 
-            print(teams_pass)
+        # условие которое не выполняется :( 
+        elif teams_pass[0]["done"] == True and teams_pass[1]["done"] == True and teams_pass[2][
+            "done"] == True:
+            print('Все команды выполнили задания !')
+
+        print(teams_pass)
 
 
 if __name__ == '__main__':
