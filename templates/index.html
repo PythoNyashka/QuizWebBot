@@ -74,7 +74,7 @@
                 $('#team1').html(json.team1)
                 $('#team2').html(json.team2)
                 $('#team3').html(json.team3)
-                $('#timer').html(json.timer)
+                $('#winner').html(json.winner)
                 console.log(response);
             },
             error: function (error) {
@@ -95,10 +95,9 @@
                 <div class="t-col t-col_12">
                     <div class="t-section__topwrapper t-align_center">
                         <div class="t-section__title t-title t-title_xs" field="btitle">QuizBot</div>
-                        <div class="t-section__descr t-descr t-descr_xl t-margin_auto" field="bdescr">У вас осталось
-                            минут на выполнение:<br></div>
+                        <div class="t-section__descr t-descr t-descr_xl t-margin_auto" field="bdescr">Победитель:<br></div>
                         <div class="t-descr t-descr_sm" style="" field="li_descr__1476966593578">
-                            <div style="font-size:38px;" data-customstyle="yes"><strong id="timer" >0</strong></div>
+                            <div style="font-size:38px;" data-customstyle="yes"><strong id="winner" >0</strong></div>
                         </div>
                     </div>
                 </div>
