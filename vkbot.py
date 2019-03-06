@@ -54,13 +54,13 @@ def end_game(registred_id, vk):
 
     # читаем JSON файл с вопросами
     json_file_data = json_read(database_file_name)
-
+    clone_list = json_read(database_file_name)
     # удаляем костыли из базы данных (не работает но фиксить некогда :( )
     for task_list in json_file_data:
         if task_list["task"] == "crutch":
-            del json_file_data[json_file_data.index(task_list)]
-            print(json_file_data)
-    write_json(database_file_name, json_file_data)
+            del clone_list[json_file_data.index(task_list)]
+
+    write_json(database_file_name, clone_list)
 
     # инфа о тимах
     teams_info = json_read(load_data_file)
@@ -129,10 +129,6 @@ def main():
 
     for event in longpoll.listen():
 
-        # # условие которое не выполняется
-        # if teams_pass[0]["done"] == True and teams_pass[1]["done"] == True and teams_pass[2]["done"] == True:
-        #     print('Все команды выполнили задания !')
-
         # если пришло новое сообщение
         if event.type == VkBotEventType.MESSAGE_NEW:
             if game_end == False:
@@ -150,10 +146,15 @@ def main():
                             # Генерируем 3 сикретных ключа
                             for user_pass in range(3):
                                 pas = ""
-                                for x in range(8):  # Количество символов (16)
-                                    pas += random.choice(list(
-                                        '1234567890abcdefghigklmnopqrstuvyxwzABCDEFGHIGKLMNOPQRSTUVYXWZ'))  # Символы, из которых будет составлен пароль
-                                user_pass_mas.append(pas)
+                                while True:
+                                    for x in range(8):  # Количество символов (16)
+                                        pas += random.choice(list(
+                                            '1234567890abcdefghigklmnopqrstuvyxwzABCDEFGHIGKLMNOPQRSTUVYXWZ'))  # Символы, из которых будет составлен пароль
+                                    if not pas in user_pass_mas:
+                                        user_pass_mas.append(pas)
+                                        break
+                                    else:
+                                        continue
 
                             # строка для отправки администратору содержащая ключи
                             pass_string_msg = f"Первая команда: {user_pass_mas[0]} \n" \
@@ -167,7 +168,6 @@ def main():
                                 message=pass_string_msg
                             )
 
-                            print(event.obj.text)
 
                     # если в начале строки сообщения '!add'
                     elif event.obj.text.split()[0].strip() == '!add' and not database_completed:
@@ -296,8 +296,6 @@ def main():
                         # если у нас это не получается присваимаем False
                         except:
                             data_index = "ERROR"
-
-                        print(data_index)
 
                         # если data_index не False
                         if data_index != "ERROR":
@@ -432,15 +430,14 @@ def main():
                         my_str += "}"
 
                         data = json.loads(str(my_str))
-                        print(data)
+
                         func_return = write_json(keyboard_position_file, data)
-                        print(func_return)
+
 
                     else:
                         json_keyboard_file_data = json_read(keyboard_position_file)
                         json_file_data = json_read(database_file_name)
-                        print(json_keyboard_file_data)
-                        print()
+
                         user_keyboard_position = json_keyboard_file_data[str(event.obj.from_id)]
 
                         try:
@@ -510,8 +507,8 @@ def main():
                                     if teams_pass[0]["done"] == True and teams_pass[1]["done"] == True and \
                                             teams_pass[2][
                                                 "done"] == True:
-                                        print('Все команды выполнили задания !')
                                         end_game(registred_id, vk)
+                                        break
 
                             # иначе то есть если ответ не верный
                             else:
@@ -570,10 +567,8 @@ def main():
 
                                     if teams_pass[0]["done"] == True and teams_pass[1]["done"] == True and \
                                             teams_pass[2]["done"] == True:
-                                        print('Все команды выполнили задания !')
                                         end_game(registred_id, vk)
-
-
+                                        break
 
                         else:
                             vk.messages.send(
@@ -588,7 +583,6 @@ def main():
                     random_id=get_random_id(),
                     message="Игра окончена !"
                 )
-        print(teams_pass)
 
 
 if __name__ == '__main__':
